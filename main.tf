@@ -64,7 +64,7 @@ resource "aws_db_instance" "education" {
   allocated_storage      = 5
   engine                 = "postgres"
   engine_version         = "13.1"
-  username               = "edu"
+  username               = var.db_rootuser
   password               = var.db_password
   db_subnet_group_name   = aws_db_subnet_group.education.name
   vpc_security_group_ids = [aws_security_group.rds.id]
@@ -72,3 +72,30 @@ resource "aws_db_instance" "education" {
   publicly_accessible    = true
   skip_final_snapshot    = true
 }
+
+
+# Setup PostgreSQL Provider After RDS Database is Provisioned
+provider "postgresql" {
+    host            = "${aws_db_instance.education.address}"
+    port            = 5432
+    username        = var.db_rootuser
+    password        = var.db_password
+    superuser       = false
+}
+# Create App User
+resource "postgresql_role" "application_role" {
+    name                = var.database.username
+    login               = true
+    password            = var.database.password
+    encrypted_password  = true
+}
+# Create Database
+resource "postgresql_database" "dev_db" {
+    name              = var.database.name
+    owner             = var.database.username
+    template          = "template0"
+    lc_collate        = "C"
+    connection_limit  = -1
+    allow_connections = true
+}
+
