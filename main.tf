@@ -61,7 +61,7 @@ resource "aws_db_parameter_group" "education" {
 resource "aws_db_instance" "education" {
   identifier             = "${var.prefix}-rds-instance"
   instance_class         = "db.t3.micro"
-  allocated_storage      = 5
+  allocated_storage      = 100
   engine                 = "postgres"
   engine_version         = "13.1"
   username               = var.db_rootuser
@@ -73,6 +73,11 @@ resource "aws_db_instance" "education" {
   skip_final_snapshot    = true
 }
 
+# kts TODO: if the DB becomes uncontactable (say, it is full)
+# then it becomes impossible to run this script, since it
+# tries to contact it to fetch this data
+# either need a way to tell terraform these go in phases
+# or split this out into a separate terraform config
 
 # Setup PostgreSQL Provider After RDS Database is Provisioned
 provider "postgresql" {
